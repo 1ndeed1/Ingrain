@@ -1,0 +1,215 @@
+/* Reset & Box Sizing */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body */
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    line-height: 1.6;
+    background-color: #f4f4f4;
+    color: #333;
+    overflow-x: hidden;
+}
+
+.bg-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+    opacity: 1; /* Fixed from 0. */
+    filter: brightness(1) blur(5px); /* Fixed from blur(px) */
+}
+
+/* Header */
+header {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 2rem 5%;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
+
+header nav {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    padding: 1rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    z-index: 10;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Project Name */
+header nav .project-name {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Navbar Links */
+header nav div {
+    display: flex;
+    gap: 1.8rem;
+}
+
+header nav a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+header nav a:hover {
+    color: #ffcc00;
+    opacity: 0.9;
+    text-decoration: underline;
+}
+
+/* Header Content */
+header h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+header p {
+    font-size: 1.3rem;
+    max-width: 700px;
+}
+
+/* Section General */
+section {
+    padding: 4rem 5%;
+    text-align: center;
+}
+
+section h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #222;
+}
+
+section p {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+/* Features */
+.features {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+}
+
+/* Feature Cards */
+.feature-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 320px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.feature-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.feature-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.feature-card p {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+/* Buttons */
+.feature-card a {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    background: #2e7d32;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background 0.3s ease;
+}
+
+.feature-card a:hover {
+    background: #256428;
+}
+
+/* Footer */
+footer {
+    background: #222;
+    color: #ddd;
+    padding: 2rem;
+    text-align: center;
+    margin-top: 3rem;
+}
+
+footer a {
+    color: #aad8ff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+footer a:hover {
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2.2rem;
+    }
+
+    header p {
+        font-size: 1rem;
+    }
+
+    .feature-card {
+        width: 90%;
+    }
+}
+
+@media (max-width: 480px) {
+    header nav {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    header nav div {
+        justify-content: center;
+    }
+}

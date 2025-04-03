@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Ingrain</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <div class="background"></div>
+    <div class="container" id="container">
+        <div class="form-container sign-up-container">
+            <form id="signupForm">
+                <h1>Create Account</h1>
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <input type="password" name="confirmPassword" placeholder="Confirm Password" required>
+                <select name="role" required>
+                    <option value="" disabled selected>Select Role</option>
+                    <option value="farmer">Farmer</option>
+                    <option value="consumer">Consumer</option>
+                </select>
+                <button type="submit">Sign Up</button>
+                <p>Already have an account? <a href="#" id="switchToSignin">Sign In</a></p>
+            </form>
+        </div>
+        <div class="form-container sign-in-container">
+            <form id="signinForm">
+                <h1>Sign In</h1>
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <a href="/forgot-password">Forgot your password?</a>
+                <button type="submit">Sign In</button>
+                <p>New here? <a href="#" id="switchToSignup">Sign Up</a></p>
+            </form>
+        </div>
+        <div class="overlay-container">
+            <div class="overlay">
+                <h1>Welcome to Ingrain!</h1>
+                <p>Connecting farmers and consumers directly.</p>
+                <button id="toggleForm">Switch to Sign Up / Sign In</button>
+            </div>
+        </div>
+    </div>
+    <div id="message" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 10px; background: #4CAF50; color: white; border-radius: 5px;"></div>
+
+    <script>
+        const container = document.getElementById('container');
+        const signupForm = document.getElementById('signupForm');
+        const signinForm = document.getElementById('signinForm');
+        const messageDiv = document.getElementById('message');
+
+        // Toggle functionality
+        document.getElementById('switchToSignup').addEventListener('click', () => container.classList.add('slide'));
+        document.getElementById('switchToSignin').addEventListener('click', () => container.classList.remove('slide'));
+        document.getElementById('toggleForm').addEventListener('click', () => container.classList.toggle('slide'));
+
+        // Display message function
+        function showMessage(text, isError) {
+            messageDiv.textContent = text;
+            messageDiv.style.background = isError ? '#f44336' : '#4CAF50';
+            messageDiv.style.display = 'block';
+            setTimeout(() => messageDiv.style.display = 'none', 5000);
+        }
+
+        // Handle signup
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(signupForm);
+            const jsonData = Object.fromEntries(formData);
+
+            // Client-side validation
+            if (jsonData.password !== jsonData.confirmPassword) {
+                showMessage("Passwords don't match", true);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(jsonData)
+                });
+                const data = await response.json();
+                showMessage(data.message, !response.ok);
+                if (response.ok) {
+                    signupForm.reset();
+                    container.classList.remove('slide'); // Switch to login after success
+                }
+            } catch (error) {
+                showMessage('Network error during sign-up', true);
+            }
+        });
+
+        // Handle signin
+        signinForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(signinForm);
+            const jsonData = Object.fromEntries(formData);
+
+            // Basic validation
+            if (!jsonData.email || !jsonData.password) {
+                showMessage("Email and password are required", true);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(jsonData)
+                });
+                
+                const data = await response.json();
+                showMessage(data.message, !response.ok);
+                
+                if (response.ok) {
+                    console.log('Login successful, role:', data.role);
+                    // Store the token and role in localStorage
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('role', data.role); // Add this line
+                    signinForm.reset();
+                    // Redirect based on role
+                    window.location.href = data.role === 'farmer' 
+                        ? '/farmer/farmer.html'
+                        : '/consumer/consumer.html';
+                }
+            } catch (error) {
+                showMessage('Network error during sign-in', true);
+            }
+        });
+    </script>
+</body>
+</html>
