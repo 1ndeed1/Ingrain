@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Farmer Dashboard | Ingrain</title>
-    <link rel="stylesheet" href="farmer.css">
+    <link rel="stylesheet" href="/farmer/farmer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="dashboard">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="profile-header">
                 <img id="profilePhoto" src="/uploads/default.jpg" alt="Profile Photo">
@@ -24,17 +23,16 @@
             </nav>
             <button id="logoutBtn" class="btn-primary logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </aside>
-
-        <!-- Main Content -->
         <main class="main-content">
             <header>
                 <h1>Your Dashboard</h1>
             </header>
             <section id="content" class="container">
-                <!-- Dynamic content will be injected here -->
+                <p>Initial content placeholder</p>
             </section>
         </main>
     </div>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="/farmer/farmer.js"></script>
 </body>
 </html>

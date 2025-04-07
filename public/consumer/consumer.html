@@ -3,56 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Consumer Dashboard</title>
+    <title>Ingrain Marketplace</title>
     <link rel="stylesheet" href="/consumer/consumer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <header class="main-header">
         <div class="container">
-            <h1 class="logo">
-                <i class="fas fa-shopping-basket"></i> Ingrain
-            </h1>
+            <h1 class="logo"><i class="fas fa-shopping-basket"></i> Ingrain</h1>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search products or farmers..." oninput="searchProducts()">
+                <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
+            </div>
             <nav>
-                <a href="#"><i class="fas fa-search"></i> Search</a>
-                <a href="#"><i class="fas fa-shopping-cart"></i> Cart</a>
-                <button id="logoutBtn" class="btn-outline">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
+                <a href="#" id="ordersLink">Orders</a>
+                <a href="#" id="messagesLink">Messages</a>
+                <a href="#" id="cartToggle"><i class="fas fa-shopping-cart"></i> Cart (<span id="cartCount">0</span>)</a>
+                <button id="logoutBtn" class="btn-outline"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </nav>
         </div>
     </header>
 
-    <main class="container">
-        <section class="product-filters">
-            <div class="search-bar">
-                <input type="text" placeholder="Search produce...">
-                <button><i class="fas fa-search"></i></button>
-            </div>
+    <main class="container" id="mainContent">
+        <section class="product-controls">
             <div class="filter-options">
-                <select>
-                    <option>Filter by Farmer</option>
+                <select id="sortBy" onchange="loadProducts()">
+                    <option value="name">Sort by Name</option>
+                    <option value="price">Sort by Price</option>
+                    <option value="farmer">Sort by Farmer</option>
                 </select>
-                <select>
-                    <option>Price Range</option>
+                <select id="filterType" onchange="loadProducts()">
+                    <option value="">All Types</option>
+                    <option value="Grains">Grains</option>
+                    <option value="Vegetables">Vegetables</option>
+                    <option value="Fruits">Fruits</option>
+                    <option value="Legumes">Legumes</option>
                 </select>
             </div>
         </section>
 
         <section class="product-grid" id="productsContainer">
-            <!-- Products will load here dynamically -->
-            <div class="loader">
-                <i class="fas fa-spinner fa-spin"></i> Loading fresh produce...
-            </div>
+            <p>Initial content placeholder</p>
         </section>
+
+        <aside class="cart-sidebar" id="cartSidebar">
+            <div class="cart-header">
+                <h2>Your Cart (<span id="cartCountSidebar">0</span>)</h2>
+                <button id="closeCart" class="btn-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="cart-items" id="cartItems"></div>
+            <div class="cart-footer">
+                <p class="cart-total">Total: ₹<span id="cartTotal">0.00</span></p>
+                <button id="placeOrderBtn" class="btn-primary">Place Order</button>
+            </div>
+        </aside>
     </main>
 
-    <footer class="main-footer">
-        <div class="container">
-            <p>&copy; 2023 FreshHarvest. All rights reserved.</p>
-        </div>
-    </footer>
-
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="/consumer/consumer.js"></script>
 </body>
 </html>

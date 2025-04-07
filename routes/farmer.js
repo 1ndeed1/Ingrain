@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
 const User = require('../models/User');
+const Order = require('../models/Order');
 const authMiddleware = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
@@ -88,7 +89,6 @@ router.post('/profile', authMiddleware, upload.single('profilePicture'), async (
     try {
         const { name, farmName, location, bio, contactNumber } = req.body;
         const user = await User.findById(req.user._id);
-        // Preserve the existing profile picture if no new file is uploaded
         const existingProfilePicture = user.profile && user.profile.profilePicture;
         user.profile = {
             name,
@@ -103,6 +103,53 @@ router.post('/profile', authMiddleware, upload.single('profilePicture'), async (
         res.status(200).json({ message: 'Profile updated successfully' });
     } catch (err) {
         console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// List farmer's orders
+router.get('/orders', authMiddleware, async (req, res) => {
+    try {
+        const orders = await Order.find({ farmerId: req.user._id })
+            .populate('consumerId', 'profile.name')
+            .sort('-createdAt');
+        res.json(orders);
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Update order status
+router.post('/orders/:id', authMiddleware, async (req, res) => {
+    try {
+        const { status } = req.body;
+        if (!['Accepted', 'Rejected'].includes(status)) {
+            return res.status(400).json({ error: 'Invalid status' });
+        }
+        const order = await Order.findOne({ _id: req.params.id, farmerId: req.user._id });
+        if (!order) return res.status(404).json({ error: 'Order not found' });
+        order.status = status;
+        await order.save();
+        res.json({ message: `Order ${status.toLowerCase()} successfully` });
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Fetch contacts (consumers who ordered from this farmer)
+router.get('/contacts', authMiddleware, async (req, res) => {
+    try {
+        const orders = await Order.find({ farmerId: req.user._id }).distinct('consumerId');
+        const consumers = await User.find({ _id: { $in: orders }, role: 'consumer' })
+            .select('profile.name email _id');
+        const formattedConsumers = consumers.map(consumer => ({
+            _id: consumer._id,
+            profile: {
+                name: consumer.profile?.name || consumer.email
+            }
+        }));
+        res.json(formattedConsumers);
+    } catch (err) {
         res.status(500).json({ error: 'Server error' });
     }
 });

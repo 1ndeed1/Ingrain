@@ -50,12 +50,10 @@
         const signinForm = document.getElementById('signinForm');
         const messageDiv = document.getElementById('message');
 
-        // Toggle functionality
         document.getElementById('switchToSignup').addEventListener('click', () => container.classList.add('slide'));
         document.getElementById('switchToSignin').addEventListener('click', () => container.classList.remove('slide'));
         document.getElementById('toggleForm').addEventListener('click', () => container.classList.toggle('slide'));
 
-        // Display message function
         function showMessage(text, isError) {
             messageDiv.textContent = text;
             messageDiv.style.background = isError ? '#f44336' : '#4CAF50';
@@ -63,13 +61,11 @@
             setTimeout(() => messageDiv.style.display = 'none', 5000);
         }
 
-        // Handle signup
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(signupForm);
             const jsonData = Object.fromEntries(formData);
 
-            // Client-side validation
             if (jsonData.password !== jsonData.confirmPassword) {
                 showMessage("Passwords don't match", true);
                 return;
@@ -85,20 +81,19 @@
                 showMessage(data.message, !response.ok);
                 if (response.ok) {
                     signupForm.reset();
-                    container.classList.remove('slide'); // Switch to login after success
+                    container.classList.remove('slide');
                 }
             } catch (error) {
                 showMessage('Network error during sign-up', true);
             }
         });
 
-        // Handle signin
         signinForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(signinForm);
             const jsonData = Object.fromEntries(formData);
+            console.log('Form data submitted:', jsonData); // Debug log
 
-            // Basic validation
             if (!jsonData.email || !jsonData.password) {
                 showMessage("Email and password are required", true);
                 return;
@@ -108,27 +103,26 @@
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify(jsonData)
                 });
-                
                 const data = await response.json();
                 showMessage(data.message, !response.ok);
-                
+                console.log('Login response:', data); // Debug log
+
                 if (response.ok) {
-                    console.log('Login successful, role:', data.role);
-                    // Store the token and role in localStorage
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('role', data.role); // Add this line
+                    localStorage.setItem('token', data.token || '');
+                    localStorage.setItem('userId', data.userId || '');
+                    localStorage.setItem('role', data.role || '');
                     signinForm.reset();
-                    // Redirect based on role
-                    window.location.href = data.role === 'farmer' 
-                        ? '/farmer/farmer.html'
-                        : '/consumer/consumer.html';
+                    window.location.href = data.role === 'farmer' ? '/farmer' : '/consumer';
                 }
             } catch (error) {
                 showMessage('Network error during sign-in', true);
+                console.error('Login error:', error);
             }
         });
     </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92cbd58e8b910699',t:'MTc0NDA1MzEyMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
