@@ -4,46 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consumer Profile | Ingrain</title>
-    <link rel="stylesheet" href="../consumer.css"> <!-- Reuse existing CSS -->
+    <link rel="stylesheet" href="/consumer/profile/profile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header class="main-header">
+    <header class="main-header glass-header">
         <div class="container">
             <h1 class="logo"><i class="fas fa-shopping-basket"></i> Ingrain</h1>
             <nav>
-                <a href="/consumer">Back to Marketplace</a>
+                <a href="/consumer">Marketplace</a>
                 <button id="logoutBtn" class="btn-outline"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </nav>
         </div>
     </header>
 
     <main class="container">
-        <section class="profile-section">
+        <section class="profile-section glass-card">
             <h2>Your Profile</h2>
-            <form id="profileForm" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="name">Name</label>
-                    <input type="text" id="name" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label for="bio">Bio</label>
-                    <textarea id="bio" name="bio" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="contactNumber">Contact Number</label>
-                    <input type="tel" id="contactNumber" name="contactNumber">
-                </div>
+            <div id="profileDisplay" class="profile-content"></div>
+            <button id="editProfileBtn" class="btn-primary glass-btn">Edit Profile</button>
+            <form id="profileForm" class="profile-form glass-card" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="profilePicture">Profile Picture</label>
                     <input type="file" id="profilePicture" name="profilePicture" accept="image/*">
                 </div>
-                <button type="submit" class="btn-primary">Save Profile</button>
+                <div class="form-group">
+                    <label for="name">Name <span class="required">*</span></label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="dob">Date of Birth <span class="required">*</span></label>
+                    <input type="date" id="dob" name="dob" required>
+                </div>
+                <div class="form-group">
+                    <label for="address">Address <span class="required">*</span></label>
+                    <textarea id="address" name="address" rows="3" required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary glass-btn" id="submitBtn">Save Changes</button>
+                    <button type="button" class="btn-outline glass-btn" id="cancelBtn">Cancel</button>
+                </div>
             </form>
-            <div id="profileDisplay"></div>
         </section>
     </main>
 
-    <script src="/consumer/profile.js"></script>
+    <script src="/consumer/profile/profile.js" defer></script>
 </body>
 </html>

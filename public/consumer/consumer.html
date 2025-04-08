@@ -16,6 +16,7 @@
                 <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
             </div>
             <nav>
+                <a href="#" id="profileLink">Profile</a>
                 <a href="#" id="ordersLink">Orders</a>
                 <a href="#" id="messagesLink">Messages</a>
                 <a href="#" id="cartToggle"><i class="fas fa-shopping-cart"></i> Cart (<span id="cartCount">0</span>)</a>
@@ -43,7 +44,7 @@
         </section>
 
         <section class="product-grid" id="productsContainer">
-            <p>Initial content placeholder</p>
+            <p><i class="fas fa-spinner fa-spin"></i> Loading products...</p>
         </section>
 
         <aside class="cart-sidebar" id="cartSidebar">
@@ -58,6 +59,15 @@
             </div>
         </aside>
     </main>
+
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <h2>Complete Your Profile</h2>
+            <p>Please fill out your profile to enable full functionality, including placing orders.</p>
+            <button id="goToProfileBtn" class="btn-primary">Go to Profile</button>
+            <button id="skipProfileBtn" class="btn-outline">Skip for Now</button>
+        </div>
+    </div>
 
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="/consumer/consumer.js"></script>

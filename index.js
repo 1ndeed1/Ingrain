@@ -14,15 +14,22 @@ const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
-        methods: ['GET', 'POST'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         credentials: true
     }
 });
 
-// MongoDB Connection (removed deprecated options)
+// Attach io to app
+app.set('io', io);
+
+// MongoDB Connection
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/ingrain')
-    .then(() => console.log('✅ MongoDB connected'))
-    .catch(err => console.error('❌ MongoDB connection error:', err));
+    .then(() => {
+        console.log('✅ MongoDB connected');
+    })
+    .catch(err => {
+        console.error('❌ MongoDB connection error:', err); // Keep this for error debugging
+    });
 
 // Middleware
 app.use(express.json());
@@ -38,15 +45,16 @@ app.get('/uploads/default.jpg', (req, res) => {
 app.use(cors({
     origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/farmer', require('./routes/farmer'));
+app.use('/api/farmer', require('./routes/farmer')); // Analytics is handled here
 app.use('/api/consumer', require('./routes/consumer'));
 app.use('/api/messages', require('./routes/messages'));
+// Remove app.use('/api/analytics', require('./routes/analytics')) since it's redundant
 
 // Serve Frontend Routes
 app.get('/farmer', authMiddleware, (req, res) => {
@@ -77,11 +85,17 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/home/home.html'));
 });
 
+// Serve Analytics Page
+app.get('/analytics', authMiddleware, (req, res) => {
+    if (req.user.role !== 'farmer') return res.redirect('/login');
+    res.sendFile(path.join(__dirname, 'public/farmer/analytics/analytics.html'));
+});
+
 // Error Handling Middleware
 app.use((err, req, res, next) => {
-    console.error('🚨 Server error:', err.stack);
+    console.error('🚨 Server error:', err.stack); // Keep this for debugging
     res.status(err.status || 500).json({ 
-        error: process.env.NODE_ENV === 'development' ? err.message : 'Internal error' 
+        error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error' 
     });
 });
 
@@ -102,7 +116,7 @@ io.use((socket, next) => {
 
 // Socket.IO Setup
 io.on('connection', (socket) => {
-    console.log(`Socket.IO client connected: User ${socket.userId} (${socket.role})`);
+   // console.log(`Socket.IO client connected: User ${socket.userId} (${socket.role})`);
 
     socket.on('sendMessage', async (data) => {
         const { receiverId, content, productId, orderId } = data;
@@ -130,8 +144,18 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('join', (userId) => {
+        socket.join(userId.toString());
+        //console.log(`User ${userId} joined room`);
+    });
+
+    socket.on('newOrder', (data) => {
+        const { orderId, consumerId } = data;
+        io.to(consumerId.toString()).emit('orderUpdate', { orderId, status: 'Pending' });
+    });
+
     socket.on('disconnect', () => {
-        console.log(`User ${socket.userId} disconnected from Socket.IO`);
+        //console.log(`User ${socket.userId} disconnected from Socket.IO`);
     });
 
     socket.join(socket.userId);

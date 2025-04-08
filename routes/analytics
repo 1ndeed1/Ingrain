@@ -1,0 +1,122 @@
+const express = require('express');
+const router = express.Router();
+const Product = require('../models/Product');
+const User = require('../models/User');
+const Order = require('../models/Order');
+const authMiddleware = require('../middleware/auth');
+const multer = require('multer');
+const path = require('path');
+
+// Multer setup
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, 'uploads/'),
+    filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
+});
+const upload = multer({ storage });
+
+// Existing routes (e.g., /crops, /profile, /orders) remain unchanged...
+
+// Analytics endpoint
+router.get('/analytics', authMiddleware, async (req, res) => {
+    try {
+        const farmerId = req.user._id;
+        const { period } = req.query;
+        const now = new Date();
+        let startDate;
+
+        switch (period) {
+            case 'week':
+                startDate = new Date(now.setDate(now.getDate() - 7));
+                break;
+            case 'month':
+                startDate = new Date(now.setMonth(now.getMonth() - 1));
+                break;
+            case 'year':
+                startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+                break;
+            default:
+                startDate = new Date(now.setDate(now.getDate() - 7)); // Default to week
+        }
+
+        // Fetch products and orders
+        const products = await Product.find({ farmerId, createdAt: { $gte: startDate } });
+        const orders = await Order.find({
+            farmerId,
+            status: { $in: ['Delivered', 'Shipped'] },
+            createdAt: { $gte: startDate }
+        }).populate('items.productId');
+
+        // Aggregate data by period
+        const getPeriodLabel = (date) => {
+            const d = new Date(date);
+            switch (period) {
+                case 'week':
+                    return `Day ${d.getDate()}`;
+                case 'month':
+                    return d.toLocaleString('default', { day: 'numeric' });
+                case 'year':
+                    return d.toLocaleString('default', { month: 'short' });
+                default:
+                    return `Day ${d.getDate()}`;
+            }
+        };
+
+        const dataByPeriod = {};
+        products.forEach(product => {
+            const label = getPeriodLabel(product.createdAt);
+            if (!dataByPeriod[label]) dataByPeriod[label] = { listed: 0, sold: 0, profit: 0, sales: 0, quantity: 0 };
+            dataByPeriod[label].listed++;
+        });
+
+        orders.forEach(order => {
+            const label = getPeriodLabel(order.createdAt);
+            if (!dataByPeriod[label]) dataByPeriod[label] = { listed: 0, sold: 0, profit: 0, sales: 0, quantity: 0 };
+            order.items.forEach(item => {
+                const product = item.productId;
+                const itemProfit = (item.price * item.quantity) - (product.investment / product.quantityProduced * item.quantity);
+                dataByPeriod[label].sold++;
+                dataByPeriod[label].profit += itemProfit;
+                dataByPeriod[label].sales += item.price * item.quantity;
+                dataByPeriod[label].quantity += item.quantity;
+            });
+        });
+
+        const labels = Object.keys(dataByPeriod).sort();
+        const listed = labels.map(label => dataByPeriod[label].listed);
+        const sold = labels.map(label => dataByPeriod[label].sold);
+        const profit = labels.map(label => dataByPeriod[label].profit);
+        const sales = labels.map(label => dataByPeriod[label].sales);
+        const quantitySold = labels.map(label => dataByPeriod[label].quantity);
+
+        // Calculate insights
+        const totalProfit = profit.reduce((sum, val) => sum + val, 0);
+        const totalSales = sales.reduce((sum, val) => sum + val, 0);
+        const totalQuantity = quantitySold.reduce((sum, val) => sum + val, 0);
+        const avgTimeToSellOverall = orders.length > 0 ? orders.reduce((sum, order) => {
+            const timeDiff = order.updatedAt ? (new Date(order.updatedAt) - new Date(order.createdAt)) / (1000 * 60 * 60 * 24) : 0;
+            return sum + (timeDiff > 0 ? timeDiff : 0);
+        }, 0) / orders.length : 0;
+        const mostProfitableDay = labels[profit.indexOf(Math.max(...profit))] || 'N/A';
+        const peakListingDay = labels[listed.indexOf(Math.max(...listed))] || 'N/A';
+
+        res.json({
+            labels,
+            listed,
+            sold,
+            profit,
+            sales,
+            quantitySold,
+            avgTimeToSellOverall,
+            mostProfitableDay,
+            peakListingDay,
+            totalProfit,
+            totalSales,
+            totalQuantity
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch analytics' });
+    }
+});
+
+module.exports = router;

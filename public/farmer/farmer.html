@@ -15,10 +15,11 @@
                 <h3 id="profileName">Loading...</h3>
             </div>
             <nav>
+                <a href="/" id="homeLink" class="nav-btn"><i class="fas fa-home"></i> Home</a>
                 <button class="nav-btn" data-section="profile"><i class="fas fa-user"></i> Profile</button>
                 <button class="nav-btn" data-section="crops"><i class="fas fa-seedling"></i> Crops</button>
                 <button class="nav-btn" data-section="orders"><i class="fas fa-shopping-cart"></i> Orders</button>
-                <button class="nav-btn" data-section="analytics"><i class="fas fa-chart-line"></i> Analytics</button>
+                <a href="/analytics" class="nav-btn" id="analyticsLink"><i class="fas fa-chart-line"></i> Analytics</a>
                 <button class="nav-btn" data-section="messages"><i class="fas fa-envelope"></i> Messages</button>
             </nav>
             <button id="logoutBtn" class="btn-primary logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
@@ -34,5 +35,6 @@
     </div>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="/farmer/farmer.js"></script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92ce3e31ac946755',t:'MTc0NDA3ODM3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>

@@ -1,11 +1,35 @@
-/* General Styles */
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* Reset and Base Styles */
+* {
     margin: 0;
     padding: 0;
-    background-color: #f0f2f5;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #69b7c1, #378c97);
+    min-height: 100vh;
     color: #333;
     line-height: 1.6;
+}
+
+/* Glass Header */
+.glass-header {
+    background: rgba(0, 196, 204, 0.1);
+    padding: 1rem 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
 }
 
 /* Dashboard Layout */
@@ -14,17 +38,22 @@ body {
     min-height: 100vh;
 }
 
+/* Glass Sidebar */
 .sidebar {
     width: 250px;
-    background: #2e7d32;
-    color: white;
+    background: rgba(0, 196, 204, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #fff;
     padding: 1.5rem 1rem;
     display: flex;
     flex-direction: column;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
     position: fixed;
     top: 0;
     bottom: 0;
+    z-index: 100;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .profile-header {
@@ -37,7 +66,7 @@ body {
     height: 80px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     margin-bottom: 0.5rem;
     cursor: pointer;
     transition: transform 0.3s ease;
@@ -50,6 +79,7 @@ body {
 .profile-header h3 {
     font-size: 1.2rem;
     font-weight: 500;
+    color: #00c4cc;
 }
 
 .sidebar nav {
@@ -62,35 +92,50 @@ body {
     gap: 0.5rem;
     width: 100%;
     background: rgba(255, 255, 255, 0.1);
-    color: white;
+    color: #fff;
     border: none;
     padding: 0.8rem 1rem;
     margin-bottom: 0.5rem;
     text-align: left;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 1rem;
-    transition: background 0.3s ease;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
 }
 
-.nav-btn:hover, .nav-btn.active {
-    background: rgba(255, 255, 255, 0.3);
+.nav-btn:hover,
+.nav-btn.active {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-3px);
 }
 
+.logout {
+    margin-top: auto;
+    background: rgba(244, 67, 54, 0.2);
+}
+
+.logout:hover {
+    background: rgba(244, 67, 54, 0.4);
+}
+
+/* Main Content */
 .main-content {
     flex-grow: 1;
     margin-left: 250px;
-    background: #f0f2f5;
     padding: 2rem;
 }
 
 .main-content header {
-    background: linear-gradient(90deg, #4CAF50, #2e7d32);
-    color: white;
+    background: rgba(0, 196, 204, 0.1);
+    color: #fff;
     padding: 1rem 2rem;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     margin-bottom: 2rem;
-    border-radius: 8px;
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .main-content header h1 {
@@ -98,64 +143,33 @@ body {
     font-size: 1.8rem;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1rem;
+/* Glass Cards */
+.glass-card {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    transition: transform 0.3s ease;
 }
 
-/* Buttons */
-.btn-primary {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 0.7rem 1.5rem;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.btn-primary:hover {
-    background-color: #388e3c;
-    transform: translateY(-2px);
-}
-
-.btn-secondary {
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    padding: 0.7rem 1.5rem;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
-}
-
-.btn-secondary:hover {
-    background-color: #5a6268;
-}
-
-.logout {
-    margin-top: auto;
-    background-color: #f44336;
-}
-
-.logout:hover {
-    background-color: #d32f2f;
+.glass-card:hover {
+    transform: translateY(-5px);
 }
 
 /* Form Styles */
-.crop-form {
-    background: white;
-    border-radius: 10px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
+.crop-form,
+.profile-section {
+    max-width: 800px;
+    margin: 0 auto;
 }
 
-.crop-form h2 {
-    color: #4CAF50;
+.crop-form h2,
+.profile-section h2 {
+    color: #00c4cc;
     margin-bottom: 1rem;
     font-size: 1.5rem;
 }
@@ -176,25 +190,26 @@ body {
     font-weight: 600;
     display: block;
     margin-bottom: 0.3rem;
-    color: #555;
+    color: #fff;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    box-sizing: border-box;
-    transition: border-color 0.3s ease;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.3);
+    color: #333;
+    font-family: 'Poppins', sans-serif;
+    transition: background 0.3s ease;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-    border-color: #4CAF50;
+    background: rgba(255, 255, 255, 0.5);
     outline: none;
 }
 
@@ -206,38 +221,30 @@ body {
 #optionalFields {
     margin-top: 1rem;
     padding: 1rem;
-    background-color: #f9f9f9;
-    border: 1px dashed #ddd;
-    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
 }
 
 /* Crop Cards */
 .crop-list {
-    background: white;
-    border-radius: 10px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.crop-list h2 {
-    color: #4CAF50;
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 .crop-card {
     display: flex;
     align-items: center;
-    background: #fff;
+    background: rgba(255, 255, 255, 0.2);
     padding: 1rem;
     margin-bottom: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s ease;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
 }
 
 .crop-card:hover {
-    transform: scale(1.01);
+    transform: scale(1.02);
 }
 
 .crop-image {
@@ -255,8 +262,8 @@ body {
 .crop-image .no-image {
     width: 60px;
     height: 60px;
-    background: #e0e0e0;
-    color: #777;
+    background: rgba(255, 255, 255, 0.3);
+    color: #666;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -272,75 +279,115 @@ body {
 .crop-info h3 {
     margin: 0 0 0.5rem;
     font-size: 1.2rem;
-    color: #333;
+    color: #00c4cc;
 }
 
 .crop-info p {
     margin: 0.2rem 0;
     font-size: 0.9rem;
+    color: #555;
 }
 
 .crop-card button {
-    background-color: #f44336;
-    color: white;
+    background: rgba(244, 67, 54, 0.2);
+    color: #fff;
     border: none;
     padding: 0.5rem 1rem;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background 0.3s ease;
 }
 
 .crop-card button:hover {
-    background-color: #d32f2f;
+    background: rgba(244, 67, 54, 0.4);
+}
+
+/* Order Cards */
+.order-card {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+}
+
+.order-card:hover {
+    transform: scale(1.02);
+}
+
+.order-card .order-info {
+    flex-grow: 1;
+}
+
+.order-card .order-info h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.2rem;
+    color: #00c4cc;
+}
+
+.order-card .order-info p {
+    margin: 0.2rem 0;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.order-card .btn-primary,
+.order-card .btn-secondary {
+    background: rgba(0, 196, 204, 0.2);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-left: 0.5rem;
+}
+
+.order-card .btn-primary:hover {
+    background: rgba(0, 196, 204, 0.4);
+}
+
+.order-card .btn-secondary {
+    background: rgba(244, 67, 54, 0.2);
+}
+
+.order-card .btn-secondary:hover {
+    background: rgba(244, 67, 54, 0.4);
 }
 
 /* Profile Section */
 .profile-section {
-    background: white;
-    border-radius: 10px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     text-align: center;
 }
 
-.profile-section h2 {
-    color: #4CAF50;
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
-}
-
-.profile-photo-large {
-    margin-bottom: 1rem;
-}
-
 .profile-photo-large img {
-    width: 120px;
-    height: 120px;
+    width: 150px;
+    height: 150px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid #4CAF50;
+    border: 4px solid rgba(255, 255, 255, 0.3);
 }
 
 .profile-section p {
     margin: 0.5rem 0;
     font-size: 1rem;
+    color: #555;
 }
 
 .profile-section strong {
-    color: #555;
+    color: #00c4cc;
 }
 
 /* Placeholder Section */
 .placeholder-section {
-    background: white;
-    border-radius: 10px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     text-align: center;
 }
 
 .placeholder-section h2 {
-    color: #4CAF50;
+    color: #00c4cc;
     margin-bottom: 1rem;
     font-size: 1.5rem;
 }
@@ -352,7 +399,7 @@ body {
 }
 
 #profitIndex {
-    color: #4CAF50;
+    color: #00c4cc;
     font-weight: bold;
     margin-top: 0.3rem;
     display: block;
@@ -366,15 +413,83 @@ body {
     left: 50%;
     transform: translateX(-50%);
     padding: 0.8rem 1.5rem;
-    background: #4CAF50;
-    color: white;
-    border-radius: 5px;
+    background: rgba(76, 175, 80, 0.2);
+    color: #fff;
+    border-radius: 8px;
     z-index: 1000;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
 }
 
 .notification.error {
-    background: #f44336;
+    background: rgba(244, 67, 54, 0.2);
+}
+
+/* Chat Container */
+.chat-container {
+    display: flex;
+    height: 500px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 20px 0;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.contacts-list {
+    width: 30%;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    overflow-y: auto;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.contact {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.3s ease;
+}
+
+.contact:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.chat-area {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+}
+
+#chatHeader {
+    padding: 10px;
+    background: rgba(0, 196, 204, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+#messagesContainer {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.message {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 8px;
+    max-width: 70%;
+}
+
+.message.sent {
+    background: rgba(212, 237, 218, 0.3);
+    margin-left: auto;
+}
+
+.message.received {
+    background: rgba(248, 249, 250, 0.3);
 }
 
 /* Responsive Design */
@@ -387,6 +502,14 @@ body {
     }
     .form-row {
         flex-direction: column;
+    }
+    .chat-container {
+        flex-direction: column;
+        height: auto;
+    }
+    .contacts-list,
+    .chat-area {
+        width: 100%;
     }
 }
 
@@ -413,4 +536,21 @@ body {
     .crop-image {
         margin-bottom: 0.5rem;
     }
+}
+/* Existing styles unchanged, adding new ones below */
+
+/* Refresh Buttons */
+.btn-refresh {
+    background: rgba(0, 196, 204, 0.2);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-left: 1rem;
+}
+
+.btn-refresh:hover {
+    background: rgba(0, 196, 204, 0.4);
 }

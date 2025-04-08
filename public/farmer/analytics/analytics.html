@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer Analytics | Ingrain</title>
+    <link rel="stylesheet" href="/farmer/analytics/analytics.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="analytics-dashboard">
+        <header>
+            <h1><i class="fas fa-chart-line"></i> Farmer Analytics</h1>
+            <button id="backBtn" class="btn-secondary"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+        </header>
+        <main>
+            <section class="controls">
+                <div class="control-group">
+                    <label for="timePeriod">Time Period:</label>
+                    <select id="timePeriod" onchange="updateCharts()">
+                        <option value="week">Last Week</option>
+                        <option value="month">Last Month</option>
+                        <option value="year">Last Year</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="sortBy">Sort By:</label>
+                    <select id="sortBy" onchange="updateCharts()">
+                        <option value="date">Date</option>
+                        <option value="productsListed">Products Listed</option>
+                        <option value="productsSold">Products Sold</option>
+                        <option value="profit">Profit</option>
+                        <option value="sales">Sales</option>
+                        <option value="quantity">Quantity Sold</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Filter Profit Range (₹):</label>
+                    <input type="range" id="profitRange" min="0" max="100000" value="100000" onchange="updateCharts()">
+                    <span id="profitRangeValue">100,000</span>
+                </div>
+            </section>
+            <section class="charts">
+                <div class="chart-card">
+                    <h2>Overview</h2>
+                    <canvas id="overviewChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h2>Profit & Sales</h2>
+                    <canvas id="profitSalesChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h2>Quantity Sold</h2>
+                    <canvas id="quantityChart"></canvas>
+                </div>
+            </section>
+            <section class="insights">
+                <h2>Key Insights</h2>
+                <div class="insight-card">
+                    <p><strong>Total Products Listed:</strong> <span id="totalListed">0</span></p>
+                    <p><strong>Total Products Sold:</strong> <span id="totalSold">0</span></p>
+                    <p><strong>Total Profit:</strong> <span id="totalProfit">0</span> ₹</p>
+                    <p><strong>Total Sales:</strong> <span id="totalSales">0</span> ₹</p>
+                    <p><strong>Total Quantity Sold:</strong> <span id="totalQuantity">0</span> kg</p>
+                    <p><strong>Avg Time to Sell:</strong> <span id="avgTimeToSell">0</span> days</p>
+                    <p><strong>Most Profitable Period:</strong> <span id="mostProfitable">N/A</span></p>
+                    <p><strong>Peak Listing Period:</strong> <span id="peakListing">N/A</span></p>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/farmer/analytics/analytics.js"></script>
+</body>
+</html>

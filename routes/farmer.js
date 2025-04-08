@@ -6,6 +6,7 @@ const Order = require('../models/Order');
 const authMiddleware = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
+const mongoose = require('mongoose');
 
 // Multer setup for image upload
 const storage = multer.diskStorage({
@@ -14,7 +15,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Add new crop
 router.post('/crops', authMiddleware, upload.single('image'), async (req, res) => {
     try {
         const {
@@ -30,6 +30,7 @@ router.post('/crops', authMiddleware, upload.single('image'), async (req, res) =
             name,
             cropType,
             quantityProduced: parseFloat(quantityProduced),
+            quantityAvailable: parseFloat(quantityProduced),
             investment: parseFloat(investment),
             price: parseFloat(price),
             description,
@@ -51,7 +52,6 @@ router.post('/crops', authMiddleware, upload.single('image'), async (req, res) =
     }
 });
 
-// List farmer's crops
 router.get('/crops', authMiddleware, async (req, res) => {
     try {
         const crops = await Product.find({ farmerId: req.user._id });
@@ -61,7 +61,6 @@ router.get('/crops', authMiddleware, async (req, res) => {
     }
 });
 
-// Delete a crop
 router.delete('/crops/:id', authMiddleware, async (req, res) => {
     try {
         const crop = await Product.findOne({ _id: req.params.id, farmerId: req.user._id });
@@ -73,7 +72,6 @@ router.delete('/crops/:id', authMiddleware, async (req, res) => {
     }
 });
 
-// Profile routes
 router.get('/profile', authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
@@ -107,11 +105,15 @@ router.post('/profile', authMiddleware, upload.single('profilePicture'), async (
     }
 });
 
-// List farmer's orders
 router.get('/orders', authMiddleware, async (req, res) => {
     try {
-        const orders = await Order.find({ farmerId: req.user._id })
-            .populate('consumerId', 'profile.name')
+        const { orderNumber } = req.query;
+        const query = { farmerId: req.user._id };
+        if (orderNumber) query.orderNumber = orderNumber;
+
+        const orders = await Order.find(query)
+            .populate('consumerId', 'profile.name profile.address')
+            .populate('items.productId')
             .sort('-createdAt');
         res.json(orders);
     } catch (err) {
@@ -119,24 +121,37 @@ router.get('/orders', authMiddleware, async (req, res) => {
     }
 });
 
-// Update order status
 router.post('/orders/:id', authMiddleware, async (req, res) => {
     try {
         const { status } = req.body;
-        if (!['Accepted', 'Rejected'].includes(status)) {
+        if (!['Accepted', 'Rejected', 'Pending Payment', 'Shipped', 'Delivered'].includes(status)) {
             return res.status(400).json({ error: 'Invalid status' });
         }
         const order = await Order.findOne({ _id: req.params.id, farmerId: req.user._id });
         if (!order) return res.status(404).json({ error: 'Order not found' });
-        order.status = status;
+        if (['Cancelled', 'Delivered'].includes(order.status)) {
+            throw new Error(`Cannot update order in ${order.status} state`);
+        }
+
+        if (status === 'Pending Payment' && !order.paymentProof) {
+            order.status = status;
+            order.paymentStatus = 'Pending';
+        } else if (status === 'Shipped' && order.status === 'Pending Payment' && order.paymentProof) {
+            order.status = status;
+        } else {
+            order.status = status;
+        }
         await order.save();
+
+        const io = req.app.get('io');
+        io.to(order.consumerId.toString()).emit('orderUpdate', { orderId: order._id, status });
+
         res.json({ message: `Order ${status.toLowerCase()} successfully` });
     } catch (err) {
-        res.status(500).json({ error: 'Server error' });
+        res.status(400).json({ error: err.message || 'Server error during status update' });
     }
 });
 
-// Fetch contacts (consumers who ordered from this farmer)
 router.get('/contacts', authMiddleware, async (req, res) => {
     try {
         const orders = await Order.find({ farmerId: req.user._id }).distinct('consumerId');

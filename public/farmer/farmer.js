@@ -4,6 +4,7 @@ const navButtons = document.querySelectorAll('.nav-btn');
 const logoutBtn = document.getElementById('logoutBtn');
 const profilePhoto = document.getElementById('profilePhoto');
 const profileName = document.getElementById('profileName');
+const homeLink = document.getElementById('homeLink');
 let currentUserId = localStorage.getItem('userId');
 
 // Socket.IO Setup
@@ -15,7 +16,7 @@ const socket = io('http://localhost:3000', {
     }
 });
 
-// Templates for sections (unchanged)
+// Templates for sections
 const profileTemplate = `
     <section class="profile-section">
         <h2>Your Profile</h2>
@@ -120,7 +121,7 @@ const cropsTemplate = `
             </form>
         </div>
         <div class="crop-list">
-            <h2>Your Listed Crops</h2>
+            <h2>Your Listed Crops <button id="refreshCropsBtn" class="btn-refresh">Refresh</button></h2>
             <div id="cropContainer">
                 <p id="loadingMessage">Loading your crops...</p>
             </div>
@@ -130,7 +131,7 @@ const cropsTemplate = `
 
 const ordersTemplate = `
     <section class="orders-section">
-        <h2>Orders</h2>
+        <h2>Orders <button id="refreshOrdersBtn" class="btn-refresh">Refresh</button></h2>
         <div id="ordersContainer">
             <p>Loading orders...</p>
         </div>
@@ -184,20 +185,38 @@ async function loadSidebarProfile() {
         profilePhoto.src = '/uploads/default.jpg';
         profileName.textContent = 'Error';
         console.error('Sidebar profile load error:', err);
+        showMessage('Failed to load sidebar profile', true);
     }
 }
 
-// Handle section switching
+// Handle section switching with History API
 navButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        const section = button.dataset.section;
-        navButtons.forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
-        loadSection(section);
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const section = button.dataset.section || (button.id === 'analyticsLink' ? 'analytics' : '');
+        if (section) {
+            navButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            loadSection(section);
+            if (section !== 'analytics') {
+                window.history.pushState({ section }, '', `#${section}`);
+            }
+        }
     });
 });
 
+if (homeLink) {
+    homeLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = '/';
+    });
+}
+
 function loadSection(section) {
+    if (section === 'analytics') {
+        window.location.href = '/analytics'; // Redirect to standalone analytics page
+        return;
+    }
     if (section === 'profile') {
         contentSection.innerHTML = profileTemplate;
         loadProfile();
@@ -207,18 +226,27 @@ function loadSection(section) {
     } else if (section === 'orders') {
         contentSection.innerHTML = ordersTemplate;
         loadOrders();
-    } else if (section === 'analytics') {
-        contentSection.innerHTML = placeholderTemplate('Analytics');
     } else if (section === 'messages') {
         contentSection.innerHTML = messagesTemplate;
         initChat();
     }
 }
 
+// Handle browser back/forward
+window.onpopstate = (event) => {
+    if (event.state && event.state.section) {
+        loadSection(event.state.section);
+        const activeBtn = document.querySelector(`.nav-btn[data-section="${event.state.section}"]`);
+        if (activeBtn) {
+            navButtons.forEach(btn => btn.classList.remove('active'));
+            activeBtn.classList.add('active');
+        }
+    }
+};
+
 // Profile logic
 async function loadProfile() {
     const profileDataDiv = document.getElementById('profileData');
-    
     try {
         const response = await fetch('/api/farmer/profile', {
             credentials: 'include',
@@ -247,11 +275,7 @@ async function loadProfile() {
             <button class="btn-primary" onclick="window.location.href='/farmer/profile'">Edit Profile</button>
         `;
     } catch (err) {
-        profileDataDiv.innerHTML = `<p class="error">${err.message}</p>`;
-        if (err.message.includes('token') || err.message.includes('Authentication')) {
-            showMessage('Session expired, redirecting to login...', true);
-            setTimeout(() => window.location.href = '/login', 2000);
-        }
+        profileDataDiv.innerHTML = `<p class="error">${err.message} <button onclick="loadProfile()">Retry</button></p>`;
     }
 }
 
@@ -260,6 +284,7 @@ function initCropSection() {
     const addCropForm = document.getElementById('addCropForm');
     const toggleDetailsBtn = document.getElementById('toggleDetails');
     const optionalFields = document.getElementById('optionalFields');
+    const refreshCropsBtn = document.getElementById('refreshCropsBtn');
 
     toggleDetailsBtn.addEventListener('click', () => {
         optionalFields.style.display = optionalFields.style.display === 'none' ? 'block' : 'none';
@@ -297,14 +322,13 @@ function initCropSection() {
             loadCrops();
         } catch (err) {
             showMessage(err.message, true);
-            if (err.message.includes('token') || err.message.includes('Authentication')) {
-                setTimeout(() => window.location.href = '/login', 2000);
-            }
         }
     });
 
+    if (refreshCropsBtn) {
+        refreshCropsBtn.addEventListener('click', loadCrops);
+    }
     loadCrops();
-    setInterval(() => loadCrops(), 10000);
 }
 
 async function loadCrops() {
@@ -324,11 +348,7 @@ async function loadCrops() {
         const crops = await response.json();
         renderCrops(crops);
     } catch (err) {
-        cropContainer.innerHTML = `<p class="error">${err.message}</p>`;
-        if (err.message.includes('token') || err.message.includes('Authentication')) {
-            showMessage('Session expired, redirecting to login...', true);
-            setTimeout(() => window.location.href = '/login', 2000);
-        }
+        cropContainer.innerHTML = `<p class="error">${err.message} <button onclick="loadCrops()">Retry</button></p>`;
     } finally {
         if (loadingMessage) loadingMessage.style.display = 'none';
     }
@@ -349,7 +369,7 @@ function renderCrops(crops) {
                 <h3>${crop.name}</h3>
                 <p><strong>Type:</strong> ${crop.cropType}</p>
                 <p><strong>Price:</strong> ₹${crop.price}/kg</p>
-                <p><strong>Quantity:</strong> ${crop.quantityProduced} kg</p>
+                <p><strong>Quantity Available:</strong> ${crop.quantityAvailable} kg</p>
                 <p><strong>Investment:</strong> ₹${crop.investment}</p>
                 <p><strong>Description:</strong> ${crop.description}</p>
                 ${crop.scientificName ? `<p><strong>Scientific Name:</strong> ${crop.scientificName}</p>` : ''}
@@ -374,9 +394,6 @@ async function deleteCrop(cropId, event) {
         loadCrops();
     } catch (err) {
         showMessage(err.message, true);
-        if (err.message.includes('token') || err.message.includes('Authentication')) {
-            setTimeout(() => window.location.href = '/login', 2000);
-        }
     }
 }
 
@@ -396,11 +413,12 @@ async function loadOrders() {
         const orders = await response.json();
         renderOrders(orders);
     } catch (err) {
-        ordersContainer.innerHTML = `<p class="error">${err.message}</p>`;
-        if (err.message.includes('token') || err.message.includes('Authentication')) {
-            showMessage('Session expired, redirecting to login...', true);
-            setTimeout(() => window.location.href = '/login', 2000);
-        }
+        ordersContainer.innerHTML = `<p class="error">${err.message} <button onclick="loadOrders()">Retry</button></p>`;
+    }
+
+    const refreshOrdersBtn = document.getElementById('refreshOrdersBtn');
+    if (refreshOrdersBtn) {
+        refreshOrdersBtn.addEventListener('click', loadOrders);
     }
 }
 
@@ -410,47 +428,188 @@ function renderOrders(orders) {
         ordersContainer.innerHTML = '<p>No orders yet.</p>';
         return;
     }
-    ordersContainer.innerHTML = orders.map(order => `
-        <div class="crop-card">
-            <div class="crop-info">
-                <h3>Order #${order._id}</h3>
-                <p><strong>Consumer:</strong> ${order.consumerId?.profile?.name || 'Unknown'}</p>
-                <p><strong>Items:</strong> ${order.items.map(item => `${item.name} (${item.quantity} kg)`).join(', ')}</p>
-                <p><strong>Total:</strong> ₹${order.total.toFixed(2)}</p>
-                <p><strong>Status:</strong> ${order.status}</p>
-                <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}</p>
-            </div>
-            ${order.status === 'Pending' ? `
+    ordersContainer.innerHTML = orders.map(order => {
+        let actionButtons = '';
+        if (order.status === 'Pending') {
+            actionButtons = `
                 <button class="btn-primary" onclick="updateOrderStatus('${order._id}', 'Accepted')">Accept</button>
                 <button class="btn-secondary" onclick="updateOrderStatus('${order._id}', 'Rejected')">Reject</button>
-            ` : ''}
-        </div>
-    `).join('');
+            `;
+        } else if (order.status === 'Accepted') {
+            actionButtons = `
+                <button class="btn-primary" onclick="updateOrderStatus('${order._id}', 'Pending Payment')">Request Payment</button>
+            `;
+        } else if (order.status === 'Pending Payment') {
+            actionButtons = `
+                <button class="btn-primary" onclick="showPaymentProof('${order._id}', '${order.orderNumber}')">Review Payment</button>
+            `;
+        } else if (order.status === 'Shipped') {
+            actionButtons = `
+                <button class="btn-primary" onclick="updateOrderStatus('${order._id}', 'Delivered')">Mark as Delivered</button>
+            `;
+        } else {
+            actionButtons = `<p>Order ${order.status.toLowerCase()}</p>`;
+        }
+
+        return `
+            <div class="order-card">
+                <div class="order-info">
+                    <h3>Order #${order.orderNumber}</h3>
+                    <p><strong>Consumer:</strong> ${order.consumerId?.profile?.name || 'Unknown'}</p>
+                    <p><strong>Items:</strong> ${order.items.map(item => `${item.name} (${item.quantity} kg)`).join(', ')}</p>
+                    <p><strong>Total:</strong> ₹${order.total.toFixed(2)}</p>
+                    <p><strong>Status:</strong> ${order.status || 'Pending'}</p>
+                    <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}</p>
+                    ${order.paymentProof ? `<img src="${order.paymentProof}" alt="Payment Proof" style="max-width: 200px;" onerror="this.style.display='none'">` : ''}
+                </div>
+                <div>
+                    ${actionButtons}
+                    <button class="btn-primary" onclick="loadOrderDetails('${order.orderNumber}')">View Details</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function loadOrderDetails(orderNumber) {
+    contentSection.innerHTML = `
+        <section class="order-details-section">
+            <h2>Order Details</h2>
+            <div id="orderDetailsContainer">
+                <p>Loading order details...</p>
+            </div>
+        </section>
+    `;
+
+    try {
+        const response = await fetch(`/api/farmer/orders?orderNumber=${orderNumber}`, {
+            credentials: 'include',
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!response.ok) throw new Error((await response.json()).error || 'Failed to load order details');
+        const orders = await response.json();
+        const order = orders[0]; // Assuming orderNumber is unique
+
+        const container = document.getElementById('orderDetailsContainer');
+        let actionButtons = '';
+        if (order.status === 'Pending') {
+            actionButtons = `
+                <button class="btn-primary" onclick="updateOrderStatus('${order._id}', 'Accepted')">Accept</button>
+                <button class="btn-secondary" onclick="updateOrderStatus('${order._id}', 'Rejected')">Reject</button>
+            `;
+        } else if (order.status === 'Accepted') {
+            actionButtons = `
+                <button class="btn-primary" onclick="updateOrderStatus('${order._id}', 'Pending Payment')">Request Payment</button>
+            `;
+        } else if (order.status === 'Pending Payment') {
+            actionButtons = `
+                <button class="btn-primary" onclick="showPaymentProof('${order._id}', '${order.orderNumber}')">Review Payment</button>
+            `;
+        } else if (order.status === 'Shipped') {
+            actionButtons = `
+                <button class="btn-primary" onclick="updateOrderStatus('${order._id}', 'Delivered')">Mark as Delivered</button>
+            `;
+        } else {
+            actionButtons = `<p>Order ${order.status.toLowerCase()}</p>`;
+        }
+
+        container.innerHTML = `
+            <div class="order-card">
+                <h3>Order #${order.orderNumber}</h3>
+                <p><strong>Consumer:</strong> ${order.consumerId?.profile?.name || 'Unknown'}</p>
+                <p><strong>Items:</strong> ${order.items.map(item => `${item.name} (${item.quantity} kg @ ₹${item.price}/kg)`).join(', ')}</p>
+                <p><strong>Total:</strong> ₹${order.total.toFixed(2)}</p>
+                <p><strong>Status:</strong> ${order.status}</p>
+                <p><strong>Shipping Address:</strong> ${order.shippingAddress || 'Not provided'}</p>
+                <p><strong>Payment Status:</strong> ${order.paymentStatus || 'Pending'}</p>
+                ${order.paymentProof ? `<img src="${order.paymentProof}" alt="Payment Proof" style="max-width: 200px;" onerror="this.style.display='none'">` : ''}
+                <div>${actionButtons}</div>
+            </div>
+        `;
+    } catch (err) {
+        document.getElementById('orderDetailsContainer').innerHTML = `<p class="error">${err.message} <button onclick="loadOrderDetails('${orderNumber}')">Retry</button></p>`;
+    }
 }
 
 async function updateOrderStatus(orderId, status) {
     try {
         const response = await fetch(`/api/farmer/orders/${orderId}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+            headers: { 
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+            },
             credentials: 'include',
             body: JSON.stringify({ status })
         });
-        if (!response.ok) throw new Error((await response.json()).error || `Failed to ${status.toLowerCase()} order`);
+        if (!response.ok) throw new Error((await response.json()).error || 'Failed to update order status');
         showMessage(`Order ${status.toLowerCase()} successfully`);
         loadOrders();
     } catch (err) {
         showMessage(err.message, true);
-        if (err.message.includes('token') || err.message.includes('Authentication')) {
-            setTimeout(() => window.location.href = '/login', 2000);
-        }
     }
 }
 
-// Chat logic
+function showPaymentProof(orderId, orderNumber) {
+    fetch(`/api/farmer/orders?orderNumber=${orderNumber}`, {
+        credentials: 'include',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    })
+    .then(response => response.json())
+    .then(orders => {
+        const order = orders[0];
+        if (!order || !order.paymentProof) {
+            showMessage('No payment proof available.', true);
+            return;
+        }
+
+        const modal = document.createElement('div');
+        modal.className = 'modal active';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h2>Review Payment for Order #${orderNumber}</h2>
+                <p>Total Amount: ₹${order.total.toFixed(2)}</p>
+                <img src="${order.paymentProof}" alt="Payment Proof" style="max-width: 300px;" onerror="this.style.display='none'">
+                <div>
+                    <button class="btn-primary" onclick="verifyPayment('${orderId}', '${orderNumber}', true)">Verify Payment</button>
+                    <button class="btn-secondary" onclick="verifyPayment('${orderId}', '${orderNumber}', false)">Reject Payment</button>
+                </div>
+                <button class="btn-secondary" onclick="this.parentElement.parentElement.remove()">Close</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    })
+    .catch(err => {
+        showMessage(`Failed to load payment proof: ${err.message}`, true);
+    });
+}
+
+async function verifyPayment(orderId, orderNumber, isVerified) {
+    try {
+        const newStatus = isVerified ? 'Shipped' : 'Pending Payment';
+        const paymentStatus = isVerified ? 'Paid' : 'Failed';
+        const response = await fetch(`/api/farmer/orders/${orderId}`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+            },
+            credentials: 'include',
+            body: JSON.stringify({ status: newStatus, paymentStatus })
+        });
+        if (!response.ok) throw new Error((await response.json()).error || 'Failed to verify payment');
+        showMessage(`Payment ${isVerified ? 'verified' : 'rejected'} successfully. Order status updated to ${newStatus.toLowerCase()}.`);
+        document.querySelector('.modal.active').remove();
+        loadOrders();
+    } catch (err) {
+        showMessage(err.message, true);
+    }
+}
+
+// Chat section logic
 let selectedContact = null;
 
-async function initChat() {
+function initChat() {
     loadContacts();
     const messageForm = document.getElementById('messageForm');
     messageForm.addEventListener('submit', async (e) => {
@@ -461,32 +620,12 @@ async function initChat() {
         document.getElementById('messageInput').value = '';
         renderMessages();
     });
-
-    socket.on('connect', () => {
-        socket.userId = localStorage.getItem('userId');
-        console.log('Farmer connected:', socket.userId);
-    });
-
-    socket.on('connect_error', (err) => {
-        console.error('Farmer connection error:', err.message);
-        if (err.message.includes('Authentication')) {
-            alert('Authentication failed. Please log in again.');
-            window.location.href = '/login';
-        }
-    });
-
-    socket.on('newMessage', (message) => {
-        console.log('Farmer received new message:', message);
-        if (selectedContact && (message.senderId === selectedContact._id || message.receiverId === selectedContact._id)) {
-            renderMessages();
-        }
-    });
 }
 
 async function loadContacts() {
     const contactsContainer = document.getElementById('contactsContainer');
     try {
-        const response = await fetch('/api/farmer/contacts', {
+        const response = await fetch('/api/farmer/contacts', { 
             credentials: 'include',
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
@@ -499,6 +638,7 @@ async function loadContacts() {
         `).join('');
     } catch (err) {
         contactsContainer.innerHTML = `<p class="error">${err.message}</p>`;
+        showMessage(`Failed to load contacts: ${err.message}`, true);
     }
 }
 
@@ -513,13 +653,13 @@ async function renderMessages() {
     const messagesContainer = document.getElementById('messagesContainer');
     if (!selectedContact) return;
     try {
-        const response = await fetch('/api/messages', {
+        const response = await fetch('/api/messages', { 
             credentials: 'include',
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         if (!response.ok) throw new Error('Failed to load messages');
         const messages = await response.json();
-        const filteredMessages = messages.filter(msg => 
+        const filteredMessages = messages.filter(msg =>
             (msg.senderId._id === selectedContact._id && msg.receiverId._id === currentUserId) ||
             (msg.receiverId._id === selectedContact._id && msg.senderId._id === currentUserId)
         );
@@ -534,29 +674,29 @@ async function renderMessages() {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     } catch (err) {
         messagesContainer.innerHTML = `<p class="error">${err.message}</p>`;
+        showMessage(`Failed to load messages: ${err.message}`, true);
     }
 }
 
-function calculateProfit() {
-    const investment = parseFloat(document.getElementById('investment').value) || 0;
-    const price = parseFloat(document.getElementById('price').value) || 0;
-    const quantity = parseFloat(document.getElementById('quantityProduced').value) || 0;
-    const profitIndexEl = document.getElementById('profitIndex');
-    if (investment && price && quantity) {
-        const revenue = price * quantity;
-        const profitIndex = (revenue / investment).toFixed(2);
-        profitIndexEl.textContent = `Profit Index: ${profitIndex}`;
-    } else {
-        profitIndexEl.textContent = '';
-    }
+// Logout logic
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+        try {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (err) {
+            console.error('Logout failed:', err);
+        }
+        localStorage.removeItem('role');
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+        window.location.href = '/login';
+    });
 }
 
-function toggleCustomType() {
-    const cropType = document.getElementById('cropType').value;
-    const customInput = document.getElementById('customCropType');
-    customInput.style.display = cropType === 'Custom' ? 'block' : 'none';
-}
-
+// Utility function to show messages
 function showMessage(text, isError = false) {
     const msg = document.createElement('div');
     msg.textContent = text;
@@ -565,7 +705,7 @@ function showMessage(text, isError = false) {
     setTimeout(() => msg.remove(), 3000);
 }
 
-// Initial load
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     const role = localStorage.getItem('role');
     if (role !== 'farmer') {
@@ -573,24 +713,61 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    loadSidebarProfile();
+    const initialSection = window.location.hash.replace('#', '') || 'orders';
+    loadSection(initialSection);
+    const activeBtn = document.querySelector(`.nav-btn[data-section="${initialSection}"]`) || document.getElementById('analyticsLink');
+    if (activeBtn) {
+        navButtons.forEach(btn => btn.classList.remove('active'));
+        activeBtn.classList.add('active');
+    }
+
     socket.on('connect', () => {
-        socket.userId = localStorage.getItem('userId');
+        socket.userId = currentUserId;
+        socket.emit('join', currentUserId);
+        console.log('Farmer connected:', currentUserId);
     });
 
-    loadSidebarProfile();
-    loadSection('crops');
-    navButtons[1].classList.add('active');
+    socket.on('connect_error', (err) => {
+        console.error('Farmer connection error:', err.message);
+        if (err.message.includes('Authentication')) {
+            alert('Authentication failed. Please log in again.');
+            window.location.href = '/login';
+        }
+    });
+
+    socket.on('newOrder', (data) => {
+        showMessage(`New order received (Order #${data.orderId})`);
+        loadOrders();
+    });
+
+    socket.on('orderUpdate', (data) => {
+        showMessage(`Order #${data.orderId} status updated to ${data.status}`);
+        loadOrders();
+    });
+
+    socket.on('newMessage', (message) => {
+        if (selectedContact && (message.senderId._id === selectedContact._id || message.receiverId._id === selectedContact._id)) {
+            renderMessages();
+        }
+    });
 });
 
-logoutBtn.addEventListener('click', async () => {
-    try {
-        await fetch('/api/auth/logout', {
-            method: 'POST',
-            credentials: 'include'
-        });
-    } catch (err) {
-        console.error('Logout failed:', err);
+// Additional utility function for profit calculation
+function calculateProfit() {
+    const investment = parseFloat(document.getElementById('investment').value) || 0;
+    const price = parseFloat(document.getElementById('price').value) || 0;
+    const quantity = parseFloat(document.getElementById('quantityProduced').value) || 0;
+    const profit = (price * quantity) - investment;
+    const profitIndex = document.getElementById('profitIndex');
+    if (profitIndex) {
+        profitIndex.textContent = `Profit: ₹${profit.toFixed(2)} (${((profit / investment) * 100).toFixed(2)}%)`;
     }
-    localStorage.removeItem('role');
-    window.location.href = '/login';
-});
+}
+
+// Toggle custom crop type input
+function toggleCustomType() {
+    const cropType = document.getElementById('cropType').value;
+    const customCropType = document.getElementById('customCropType');
+    customCropType.style.display = cropType === 'Custom' ? 'block' : 'none';
+}
